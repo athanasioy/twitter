@@ -17,3 +17,10 @@ We will save
 - name
 - Username
 - Creation Date
+
+### Workflow
+
+- Scrap Tweets
+- Before Inserting, check if author exists in the Authors Table
+- If Exists, proceed with inserting the tweet
+- If doesn't exists, insert author and proceed with inserting the tweet

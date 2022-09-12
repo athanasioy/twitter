@@ -8,3 +8,12 @@ CREATE TABLE Tweets (
   answersTo INT,
   source tinyint
 )
+GO
+
+CREATE TABLE Authors (
+  ID INT PRIMARY KEY,
+  name varchar(100),
+  username varchar(50),
+  creation_date DATETIME,
+
+)
