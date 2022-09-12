@@ -17,3 +17,4 @@ CREATE TABLE Authors (
   creation_date DATETIME,
 
 )
+GO
