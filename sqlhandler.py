@@ -11,6 +11,8 @@ class sqlHandler:
         """
         Inserts a user into the authors table.
         """
+        #something like ...
+        self.cursor.execute("INSERT INTO Authors () values (?,?...)",params)
         pass
     def insert_tweets(self, tweet: Tweet):
         """

@@ -5,7 +5,17 @@ script contating the main dataclasses that will be passed into sqlHandler
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum, auto
 
+class reference_type(Enum):
+    retweet = 1
+    replied_to = 2
+
+
+class tweet_source(Enum):
+    android = 1
+    ipad = 2
+    web_app = 3
 
 @dataclass
 class Tweet:
@@ -14,9 +24,9 @@ class Tweet:
     created_at: datetime
     author_id: int
     retweet_id: int # None if not a retweet
-    reference_type: enum
+    reference_type: reference_type
     reply_to: int # None if doesn't reply
-    source: enum
+    source: tweet_source
 
 @dataclass
 class Author:
