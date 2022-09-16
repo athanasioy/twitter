@@ -23,18 +23,28 @@ class sqlHandler:
 
     def insert_parameter_builder(self, tweet: Tweet) -> str:
         fields_to_insert = '('
+        params = '('
         for field in fields(tweet):
-            fields_to_insert += self.field_mapper("Tweets",field.name) + ','
-        fields_to_insert = fields_to_insert[:-1]+')'
-        return fields_to_insert
+            fields_to_insert += self.field_mapper("Tweets",field.name) + ', '
+            params += '?' + ', '
+        fields_to_insert = fields_to_insert[:-2]+')' # [:-1] gets rid of the last comma
+        params = params[:-2]+')' # [:-1] gets rid of the last comma
+
+        return (fields_to_insert,params)
 
     def insert_tweets(self, tweet: Tweet) -> None:
         """
         Inserts a tweet into the Tweets Table.
         Before inserting, it checks if the author exists into the authors table
         """
-        fields_to_insert = self.insert_parameter_builder(tweet)
-        print(fields_to_insert)
+        sql_statement = "INSERT INTO Tweets "
+        fields_to_insert, params = self.insert_parameter_builder(tweet)
+        sql_statement += fields_to_insert
+        sql_statement += " VALUES" + params
+        tweet_params = tuple(getattr(tweet,value.name) for value in fields(tweet))
+        # print(tweet_params, sql_statement)
+        self.cursor.execute(sql_statement, tweet_params)
+        self.cursor.commit()
 
 
     def field_mapper(self, table_name:str, field_name: str) -> str:
@@ -57,7 +67,7 @@ class sqlHandler:
 def main():
     conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ATHANANTONIS;DATABASE=Tweeterdb;Trusted_connection=yes'
     sql_handler = sqlHandler(conn_string)
-    field_mapping = {"Tweets":{"id": "id",
+    FIELD_MAPPING = {"Tweets":{"id": "id",
                                 "author_id": "author_id",
                                 "created_at": "created_at",
                                 "text": "tweet_text",
@@ -65,12 +75,12 @@ def main():
                                 "reference_type": "reference_type",
                                 "reply_to": "AnswersTo",
                                 "source": "source"}}
-    sql_handler.set_field_mapper(field_mapping)
+    sql_handler.set_field_mapper(FIELD_MAPPING)
 
-    test_tweet = Tweet(id = -1,
+    test_tweet = Tweet(id = -2,
                        author_id = 999,
                        created_at = datetime.now(),
-                       text = "This is a test tweet",
+                       text = "this is another test tweet",
                        retweet_id = 123,
                        reference_type = 1,
                        reply_to = 232323,
