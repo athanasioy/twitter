@@ -3,12 +3,19 @@ Script Responsible for generating tweet stream
 """
 import tweepy
 from config import config
-from tweet_dataclass import Tweet, Author
+from tweet_dataclass import Tweet, Author, tweet_source
 import json
 import requests
 
 class ReponseHandler:
     """ Class used to handle the response from TwitterStream class"""
+
+    def __init__(self) -> None:
+        self.source_enum_mapper = {"Twitter for Android": tweet_source.Android,
+                                   "Twitter Web App": tweet_source.Web_App,
+                                   "Twitter for iPhone": tweet_source.Iphone,
+                                   "Twitter for iPad": tweet_source.iPad}
+
     @staticmethod
     def extract_data(response: requests.Response) -> Tweet:
         """We will fix things later"""
@@ -54,7 +61,7 @@ def main() -> None:
 
     tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
 
-    rule = '"Νεα Δημοκρατία" OR ΔΕΘ'
+    rule = '"Νεα Δημοκρατία" OR ΔΕΘ OR Πιτσιόρλας'
     tag = 'Current News'
     streaming_client = TwitterStream(config.get("bearer_token")) # Set up stream
     streaming_client.add_rules(tweepy.StreamRule(rule,tag))

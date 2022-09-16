@@ -14,9 +14,11 @@ class reference_type(Enum):
 
 
 class tweet_source(Enum):
-    android = 1
-    ipad = 2
-    web_app = 3
+    Android = 1
+    iPad = 2
+    Web_App = 3
+    iPhone = 4
+    Other = 999
 
 @dataclass
 class Tweet:
