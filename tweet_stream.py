@@ -18,13 +18,16 @@ class ReponseHandler:
         text = response.get("data").get("text")
         created_at = response.get("data").get("created_at")
         author_id = response.get("data").get("author_id")
-        retweet_id = response.get("referenced_tweets")
+        retweet_id = response.get("data").get("referenced_tweets")
         if retweet_id is not None:
             retweet_id = retweet_id[0].get("id")
         answers_to = response.get("includes").get("tweets")
         if answers_to is not None:
-            answers_to = answers_to[0].get("id")
+            answers_to = answers_to[0].get("author_id")
         source = response.get("data").get("source") # need to covert to enum
+        reference_type = response.get("data").get("referenced_tweets")
+        if reference_type is not None:
+            reference_type = reference_type[0].get("type") # need to convert to enum
 
         return Tweet(id = id,
                      text = text,

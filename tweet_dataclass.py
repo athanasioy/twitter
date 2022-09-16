@@ -10,6 +10,7 @@ from enum import Enum, auto
 class reference_type(Enum):
     retweet = 1
     replied_to = 2
+    quoted = 3
 
 
 class tweet_source(Enum):
