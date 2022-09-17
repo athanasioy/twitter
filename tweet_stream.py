@@ -2,36 +2,41 @@
 Script Responsible for generating tweet stream
 """
 import tweepy
-from config import config
-from tweet_dataclass import Tweet, Author, tweet_source, reference_type
 import json
 import requests
+from sqlhandler import sqlHandler
+from config import config
+from tweet_dataclass import Tweet, Author, tweet_source, reference_type
 
 
-class ReponseHandler:
+class ResponseHandler:
 
     def __init__(self) -> None:
         # We are hard-coding enums because they will not change frequently
-        self.source_enum_mapper = {"Twitter for Android": tweet_source.Android,
-                                   "Twitter Web App": tweet_source.Web_App,
-                                   "Twitter for iPhone": tweet_source.iPhone,
-                                   "Twitter for iPad": tweet_source.iPad}
+        self.source_enum_mapper = {"Twitter for Android": tweet_source.Android.value,
+                                   "Twitter Web App": tweet_source.Web_App.value,
+                                   "Twitter for iPhone": tweet_source.iPhone.value,
+                                   "Twitter for iPad": tweet_source.iPad.value}
 
-        self.reference_type_enum = {"retweeted": reference_type.retweet,
-                                    "replied_to": reference_type.replied_to,
-                                    "quoted": reference_type.quoted}
-    def source_enum_mapper(self, value: str) -> Enum:
+        self.reference_type_enum = {"retweeted": reference_type.retweet.value,
+                                    "replied_to": reference_type.replied_to.value,
+                                    "quoted": reference_type.quoted.value}
+
+
+    def get_source_value(self, value: str) -> tweet_source:
         return self.source_enum_mapper.get(value)
 
-    def reference_type_enum_mapper(self, value: str) -> Enum:
-        return self.source_enum_mapper.get(value)
+    def get_referenceType_value(self, value: str) -> reference_type:
+        return self.reference_type_enum.get(value)
 
-class StreamReponseHandler(ResponseHanlder):
+class StreamReponseHandler(ResponseHandler):
     """ Class used to handle the response from TwitterStream class"""
 
-    @staticmethod
-    def extract_data(response: requests.Response) -> Tweet:
+    def extract_data(self, response: requests.Response) -> Tweet:
         """We will fix things later"""
+
+        answers_to: int = None
+        reference_type: reference_type = None
         response = json.loads(response.decode())
         print(json.dumps(response,sort_keys = True,indent =4 ))
 
@@ -40,6 +45,7 @@ class StreamReponseHandler(ResponseHanlder):
         created_at = response.get("data").get("created_at")
         author_id = response.get("data").get("author_id")
         source = response.get("data").get("source") # need to covert to enum
+        source = self.get_source_value(source)
 
         retweet_id = response.get("data").get("referenced_tweets")
 
@@ -50,22 +56,31 @@ class StreamReponseHandler(ResponseHanlder):
             answers_to = answers_to[0].get("author_id") # get the author id of the reply
             reference_type = response.get("data").get("referenced_tweets")
             reference_type = reference_type[0].get("type") # need to convert to enum
-
+            reference_type = self.get_referenceType_value(reference_type)
 
         return Tweet(id = id,
                      text = text,
                      created_at = created_at,
                      author_id = author_id,
                      retweet_id = retweet_id,
-                     reply_to = answers_to
+                     reply_to = answers_to,
+                     source = source,
+                     reference_type = reference_type
                      )
 
 class TwitterStream(tweepy.StreamingClient):
 
+    def __init__(self, bearer_token: str, sql_handler: sqlHandler):
+        super().__init__(bearer_token)
+        self.sql_handler = sql_handler
+        self.responseHanlder = StreamReponseHandler()
+
 
     def on_data(self, data):
-        self.responseHanlder = StreamReponseHandler()
-        print(self.responseHanlder.extract_data(data))
+
+        tweet = self.responseHanlder.extract_data(data)
+        print(tweet)
+        self.sql_handler.insert_tweets(tweet)
 
 
 def main() -> None:
@@ -80,8 +95,23 @@ def main() -> None:
     rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ'
     tag = 'Current News'
 
-    streaming_client = TwitterStream(config.get("bearer_token")) # Set up stream
-    streaming_client.delete_rules(['1570102941805150212', '1570843677123018753'])
+    # Intiliaze sqlHandler
+    conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ATHANANTONIS;DATABASE=Tweeterdb;Trusted_connection=yes'
+    sql_handler = sqlHandler(conn_string)
+    FIELD_MAPPING = {"Tweets":{"id": "id",
+                                "author_id": "author_id",
+                                "created_at": "created_at",
+                                "text": "tweet_text",
+                                "retweet_id": "referenced_tweet",
+                                "reference_type": "reference_type",
+                                "reply_to": "AnswersTo",
+                                "source": "source"}}
+    sql_handler.set_field_mapper(FIELD_MAPPING)
+
+
+    streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
+                                     sql_handler = sql_handler) # Set up stream
+    # streaming_client.delete_rules(['1570102941805150212', '1570843677123018753'])
     streaming_client.add_rules(tweepy.StreamRule(rule,tag))
     print(streaming_client.get_rules())
     streaming_client.filter(expansions = expansions, tweet_fields = tweet_fields)
