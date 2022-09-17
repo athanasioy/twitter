@@ -35,15 +35,16 @@ class sqlHandler:
     def insert_tweets(self, tweet: Tweet) -> None:
         """
         Inserts a tweet into the Tweets Table.
-        Before inserting, it checks if the author exists into the authors table
         """
+        if self.check_row_existance(table_name="Tweets", id=tweet.id):
+            print("Row already exists!")
+            return
+        
         sql_statement = "INSERT INTO Tweets "
         fields_to_insert, params = self.insert_parameter_builder(tweet)
-        sql_statement += fields_to_insert
-        sql_statement += " VALUES" + params
+        sql_statement += fields_to_insert + " VALUES" + params
 
         tweet_params = tuple(getattr(tweet,value.name) for value in fields(tweet))
-
         self.cursor.execute(sql_statement, tweet_params)
         self.cursor.commit()
 
@@ -54,11 +55,15 @@ class sqlHandler:
 
         return self.field_mapping.get(table_name).get(field_name)
 
-    def check_if_author_exists(self, author: Author) -> bool:
+    def check_row_existance(self,table_name: str, id: str) -> bool:
         """
-        Returns None if author doesn't exist
+        Returns true if row exists
         """
-        pass
+        sql_statement = "SELECT count(*) FROM "
+        sql_statement += table_name +" WHERE id = ?"
+        self.cursor.execute(sql_statement,str(id))
+        result = self.cursor.fetchone()
+        return result[0] > 0
 
     def close_connection(self) -> None:
         self.connection.close()
@@ -76,9 +81,10 @@ def main():
                                 "reference_type": "reference_type",
                                 "reply_to": "AnswersTo",
                                 "source": "source"}}
+
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
-    test_tweet = Tweet(id = -2,
+    test_tweet = Tweet(id = -3,
                        author_id = 999,
                        created_at = datetime.now(),
                        text = "this is another test tweet",
