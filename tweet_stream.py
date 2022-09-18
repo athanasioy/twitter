@@ -96,7 +96,7 @@ class TwitterStream(tweepy.StreamingClient):
         print(tweet)
         author = self.responseHanlder.extract_author_data(data)
         print(author)
-        self.sql_handler.insert_tweets(tweet)
+        self.sql_handler.insert_dataclass(tweet)
 
 
 def main() -> None:

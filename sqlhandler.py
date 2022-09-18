@@ -2,6 +2,7 @@ import pyodbc
 from tweet_dataclass import Tweet,Author
 from datetime import datetime
 from dataclasses import fields
+from typing import Union
 
 
 class sqlHandler:
@@ -21,30 +22,39 @@ class sqlHandler:
         """Sets the field mapper dict into a class variable"""
         self.field_mapping = map_dict
 
-    def insert_parameter_builder(self, tweet: Tweet) -> str:
+    def insert_parameter_builder(self, dataclass: Union[Tweet, Author], table_name: str) -> str:
         fields_to_insert = '('
         params = '('
-        for field in fields(tweet):
-            fields_to_insert += self.field_mapper("Tweets",field.name) + ', '
+        for field in fields(dataclass):
+            fields_to_insert += self.field_mapper(table_name,field.name) + ', '
             params += '?' + ', '
         fields_to_insert = fields_to_insert[:-2]+')' # [:-2] gets rid of the last comma
         params = params[:-2]+')' # [:-2] gets rid of the last comma
 
         return (fields_to_insert,params)
 
-    def insert_tweets(self, tweet: Tweet) -> None:
+    def sql_statement_builder(self, dataclass: Union[Tweet, Author], table_name: str) -> str:
+        """
+        Dynamically create the SQL insert statement.
+        """
+        sql_statement = f"INSERT INTO {table_name} "
+        fields_to_insert, params = self.insert_parameter_builder(dataclass, table_name = table_name)
+        sql_statement += fields_to_insert + " VALUES" + params
+        return sql_statement
+
+    def insert_dataclass(self, dataclass: Union[Tweet, Author], table_name: str) -> None:
         """
         Inserts a tweet into the Tweets Table.
         """
-        if self.check_row_existance(table_name="Tweets", id=tweet.id):
+        if self.check_row_existance(table_name=table_name, id=dataclass.id):
             print("Row already exists!")
             return
-        
-        sql_statement = "INSERT INTO Tweets "
-        fields_to_insert, params = self.insert_parameter_builder(tweet)
-        sql_statement += fields_to_insert + " VALUES" + params
 
-        tweet_params = tuple(getattr(tweet,value.name) for value in fields(tweet))
+        sql_statement = self.sql_statement_builder(dataclass,table_name)
+
+
+        # Create the tuple that will be passed into cursor.execute method
+        tweet_params = tuple(getattr(dataclass,value.name) for value in fields(dataclass))
         self.cursor.execute(sql_statement, tweet_params)
         self.cursor.commit()
 
@@ -92,7 +102,7 @@ def main():
                        reference_type = 1,
                        reply_to = 232323,
                        source = 1)
-    sql_handler.insert_tweets(test_tweet)
+    sql_handler.insert_dataclass(test_tweet, "Tweets")
 
     sql_handler.close_connection()
 
