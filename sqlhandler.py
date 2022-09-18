@@ -47,7 +47,7 @@ class sqlHandler:
         Inserts a tweet into the Tweets Table.
         """
         if self.check_row_existance(table_name=table_name, id=dataclass.id):
-            print("Row already exists!")
+            print(f"Row with id {dataclass.id} on table {table_name} already exists!")
             return
 
         sql_statement = self.sql_statement_builder(dataclass,table_name)

@@ -96,7 +96,8 @@ class TwitterStream(tweepy.StreamingClient):
         print(tweet)
         author = self.responseHanlder.extract_author_data(data)
         print(author)
-        self.sql_handler.insert_dataclass(tweet)
+        self.sql_handler.insert_dataclass(tweet, table_name = "Tweets")
+        self.sql_handler.insert_dataclass(author, table_name = "Authors")
 
 
 def main() -> None:
@@ -110,7 +111,7 @@ def main() -> None:
     tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
 
     # Define Stream Rules
-    rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ'
+    rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ OR #ΣΥΡΙΖΑ OR #Τσίπρας OR #ΤΣΙΠΡΑΣ OR Νοτοπούλου OR #ΑΠΘ'
     tag = 'Current News'
 
     # Intiliaze sqlHandler
@@ -123,7 +124,12 @@ def main() -> None:
                                 "retweet_id": "referenced_tweet",
                                 "reference_type": "reference_type",
                                 "reply_to": "AnswersTo",
-                                "source": "source"}}
+                                "source": "source"},
+                     "Authors":{"id": "id",
+                                "name": "name",
+                                "username": "username",
+                                "creation_date": "creation_date"}}
+
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
     # Create streaming_client
