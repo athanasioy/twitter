@@ -36,4 +36,4 @@ class Author:
     id: int
     name: str
     username: str
-    creation_date: datetime
+    creation_date: datetime = None # If not avaialbe

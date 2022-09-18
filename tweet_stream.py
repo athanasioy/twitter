@@ -32,7 +32,7 @@ class ResponseHandler:
 class StreamReponseHandler(ResponseHandler):
     """ Class used to handle the response from TwitterStream class"""
 
-    def extract_data(self, response: requests.Response) -> Tweet:
+    def extract_tweet_data(self, response: requests.Response) -> Tweet:
         """We will fix things later"""
 
         answers_to: int = None
@@ -68,6 +68,20 @@ class StreamReponseHandler(ResponseHandler):
                      reference_type = reference_type
                      )
 
+    def extract_author_data(self, response: requests.Response) -> Author:
+        """ Create an Author object from the twitter response"""
+        response = json.loads(response.decode())
+
+        author_id = response.get("data").get("author_id")
+        username = response.get("includes").get("users") # Returns a List
+        # Returns the first username with the author_id
+        name = next((value['name'] for value in username if value['id'] == author_id), None)
+        username = next((value['username'] for value in username if value['id'] == author_id), None)
+
+        return Author(id = author_id,
+                      name = name,
+                      username = username)
+
 class TwitterStream(tweepy.StreamingClient):
 
     def __init__(self, bearer_token: str, sql_handler: sqlHandler):
@@ -78,12 +92,15 @@ class TwitterStream(tweepy.StreamingClient):
 
     def on_data(self, data):
 
-        tweet = self.responseHanlder.extract_data(data)
+        tweet = self.responseHanlder.extract_tweet_data(data)
         print(tweet)
+        author = self.responseHanlder.extract_author_data(data)
+        print(author)
         self.sql_handler.insert_tweets(tweet)
 
 
 def main() -> None:
+    #Define Stream Parameters
     expansions = ['author_id',
                  'in_reply_to_user_id',
                  'referenced_tweets.id',
@@ -92,6 +109,7 @@ def main() -> None:
 
     tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
 
+    # Define Stream Rules
     rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ'
     tag = 'Current News'
 
@@ -108,12 +126,13 @@ def main() -> None:
                                 "source": "source"}}
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
-
+    # Create streaming_client
     streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
                                      sql_handler = sql_handler) # Set up stream
-    # streaming_client.delete_rules(['1570102941805150212', '1570843677123018753'])
+    # Add rule
     streaming_client.add_rules(tweepy.StreamRule(rule,tag))
     print(streaming_client.get_rules())
+    # Run Stream
     streaming_client.filter(expansions = expansions, tweet_fields = tweet_fields)
 
 if __name__ == "__main__":
