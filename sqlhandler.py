@@ -90,7 +90,11 @@ def main():
                                 "retweet_id": "referenced_tweet",
                                 "reference_type": "reference_type",
                                 "reply_to": "AnswersTo",
-                                "source": "source"}}
+                                "source": "source"},
+                     "Authors":{"id": "id",
+                                "name": "name",
+                                "username": "username",
+                                "creation_date": "creation_date"}}
 
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
@@ -103,6 +107,11 @@ def main():
                        reply_to = 232323,
                        source = 1)
     sql_handler.insert_dataclass(test_tweet, "Tweets")
+
+    test_author = Author(id = -1,
+                         name = "My Name",
+                         username = "Python")
+    sql_handler.insert_dataclass(test_author, "Authors")
 
     sql_handler.close_connection()
 
