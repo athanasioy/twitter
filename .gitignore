@@ -1,4 +1,6 @@
 # Ignore pycache
-.pyc
+*.pyc
 # Ignore ipynb
-.ipynb
+*.ipynb
+# Ignore config file
+config.py
