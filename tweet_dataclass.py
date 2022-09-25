@@ -18,7 +18,7 @@ class tweet_source(Enum):
     iPad = 2
     Web_App = 3
     iPhone = 4
-    Other = 999
+    Other = 99
 
 @dataclass
 class Tweet:

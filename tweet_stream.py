@@ -10,9 +10,9 @@ from responseHandler import StreamReponseHandler
 class TwitterStream(tweepy.StreamingClient):
 
     def __init__(self, bearer_token: str, sql_handler: sqlHandler):
-        super().__init__(bearer_token)
         self.sql_handler = sql_handler
         self.responseHanlder = StreamReponseHandler()
+        super().__init__(bearer_token)
 
 
     def on_data(self, data):
@@ -36,8 +36,8 @@ def main() -> None:
     tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
 
     # Define Stream Rules
-    rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ OR #ΣΥΡΙΖΑ OR #Τσίπρας OR #ΤΣΙΠΡΑΣ OR Νοτοπούλου OR #ΑΠΘ'
-    tag = 'Current News'
+    rule = '#πανεπιστημιακη_αστυνομια OR #ΝΔ OR #ΣΥΡΙΖΑ OR #Τσίπρας OR #ΤΣΙΠΡΑΣ OR Νοτοπούλου OR #ΑΠΘ OR Τσιπρας OR Τσίπρας OR #antireport OR Μητσοτάκης OR Μητσοτακης'
+    tag = 'Current News2'
 
     # Intiliaze sqlHandler
     conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ATHANANTONIS;DATABASE=Tweeterdb;Trusted_connection=yes'
@@ -63,7 +63,7 @@ def main() -> None:
     streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
                                      sql_handler = sql_handler) # Set up stream
     # Add rule
-    streaming_client.add_rules(tweepy.StreamRule(rule,tag))
+    streaming_client.add_rules(tweepy.StreamRule(value = rule, tag = tag))
     print(streaming_client.get_rules())
     # Run Stream
     streaming_client.filter(expansions = expansions, tweet_fields = tweet_fields)

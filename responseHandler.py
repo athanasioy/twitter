@@ -20,7 +20,7 @@ class ResponseHandler:
         """
         Used to convert the source field from string to Enum.
         """
-        return self.source_enum_mapper.get(value)
+        return self.source_enum_mapper.get(value,tweet_source.Other.value)
 
     def get_referenceType_value(self, value: str) -> reference_type:
         """
