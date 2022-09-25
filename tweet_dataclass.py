@@ -26,10 +26,12 @@ class Tweet:
     text: str
     created_at: datetime
     author_id: int
+    has_media: bool
     retweet_id: int = None # None if not a retweet
     reference_type: reference_type = None
     reply_to: int = None # None if doesn't reply
     source: tweet_source = None
+    media_type: int = None #  None for now
 
 @dataclass
 class Author:

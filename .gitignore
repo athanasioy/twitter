@@ -1,0 +1,4 @@
+# Ignore pycache
+.pyc
+# Ignore ipynb
+.ipynb

@@ -58,6 +58,15 @@ class StreamReponseHandler(ResponseHandler):
             reference_type = reference_type[0].get("type") # need to convert to enum
             reference_type = self.get_referenceType_value(reference_type)
 
+        has_media = response.get("includes").get("tweets")
+        if has_media is not None:
+            has_media = has_media[0].get("attachments").get("media_keys")
+
+        if has_media is not None:
+            has_media = True
+        else:
+            has_media = False
+
         return Tweet(id = id,
                      text = text,
                      created_at = created_at,
@@ -65,7 +74,8 @@ class StreamReponseHandler(ResponseHandler):
                      retweet_id = retweet_id,
                      reply_to = answers_to,
                      source = source,
-                     reference_type = reference_type
+                     reference_type = reference_type,
+                     has_media = has_media
                      )
 
     def extract_author_data(self, response: requests.Response) -> Author:
@@ -124,7 +134,9 @@ def main() -> None:
                                 "retweet_id": "referenced_tweet",
                                 "reference_type": "reference_type",
                                 "reply_to": "AnswersTo",
-                                "source": "source"},
+                                "source": "source",
+                                "has_media": "has_media",
+                                "media_type": "media_type"},
                      "Authors":{"id": "id",
                                 "name": "name",
                                 "username": "username",
