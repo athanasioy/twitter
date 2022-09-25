@@ -1,6 +1,7 @@
 import json
 import requests
-from tweet_dataclass import Tweet, Author, tweet_source, reference_type
+from tweet_dataclass import Tweet, Author, tweet_source, reference_type, media_type
+from typing import List
 
 class ResponseHandler:
 
@@ -11,9 +12,13 @@ class ResponseHandler:
                                    "Twitter for iPhone": tweet_source.iPhone.value,
                                    "Twitter for iPad": tweet_source.iPad.value}
 
-        self.reference_type_enum = {"retweeted": reference_type.retweet.value,
+        self.reference_type_mapper = {"retweeted": reference_type.retweet.value,
                                     "replied_to": reference_type.replied_to.value,
                                     "quoted": reference_type.quoted.value}
+
+        self.media_type_mapper = {"video": media_type.video.value,
+                                  "GIF": media_type.GIF.value,
+                                  "photo": media_type.photo.value}
 
 
     def get_source_value(self, value: str) -> tweet_source:
@@ -26,8 +31,27 @@ class ResponseHandler:
         """
         Used to convert the reference_type field from string to Enum.
         """
-        return self.reference_type_enum.get(value)
+        return self.reference_type_mapper.get(value)
 
+    def get_media_type_value(self, value: str) -> media_type:
+        return self.media_type_mapper.get(value)
+
+    @staticmethod
+    def get_result_from_iter(response_list: List[dict], value: str) -> str:
+        """
+        Used to deal with nested structures in dictionaries where the value is a list.
+        Problems occur when tried to reference items from non existent list
+        Returns the value of a key-value pair inside a dictionary
+        """
+        if response_list is None:
+            return None
+
+        value = next((x[value] for x in response_list), None)
+
+        if value is None:
+            return None
+
+        return value
 class StreamReponseHandler(ResponseHandler):
     """ Class used to handle the response from TwitterStream class"""
 
@@ -46,25 +70,25 @@ class StreamReponseHandler(ResponseHandler):
         source = response.get("data").get("source") # need to covert to enum
         source = self.get_source_value(source)
 
-        retweet_id = response.get("data").get("referenced_tweets")
+        # Set up referenced_tweet iterator
+        referenced_tweets = response.get("data").get("referenced_tweets")
 
-        if retweet_id is not None:
-            retweet_id = retweet_id[0].get("id") # Get reply_tweet_id
+        retweet_id = self.get_result_from_iter(referenced_tweets, "id")
+        reference_type = self.get_result_from_iter(referenced_tweets, "type")
+        reference_type = self.get_referenceType_value(reference_type) # Convert to Enum
 
-            answers_to = response.get("includes").get("tweets")
-            answers_to = answers_to[0].get("author_id") # get the author id of the reply
-            reference_type = response.get("data").get("referenced_tweets")
-            reference_type = reference_type[0].get("type") # need to convert to enum
-            reference_type = self.get_referenceType_value(reference_type)
+        # Set up includes iterator
+        includes_tweets = response.get("includes").get("tweets")
+        answers_to = self.get_result_from_iter(includes_tweets, "author_id")
 
-        has_media = response.get("includes").get("tweets")
-        if has_media is not None:
-            has_media = has_media[0].get("attachments").get("media_keys")
+        # Set up attachments iterator
+        includes_media = response.get("includes").get("media")
+        media = self.get_result_from_iter(includes_media, "type")
+        media = self.get_media_type_value(media)
 
-        if has_media is not None:
+        has_media = False
+        if media:
             has_media = True
-        else:
-            has_media = False
 
         return Tweet(id = id,
                      text = text,
@@ -74,7 +98,8 @@ class StreamReponseHandler(ResponseHandler):
                      reply_to = answers_to,
                      source = source,
                      reference_type = reference_type,
-                     has_media = has_media
+                     has_media = has_media,
+                     media_type = media
                      )
 
     def extract_author_data(self, response: requests.Response) -> Author:

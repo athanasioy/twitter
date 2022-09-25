@@ -20,6 +20,11 @@ class tweet_source(Enum):
     iPhone = 4
     Other = 99
 
+class media_type(Enum):
+    photo = 1
+    GIF = 2
+    video = 3
+
 @dataclass
 class Tweet:
     id: int
