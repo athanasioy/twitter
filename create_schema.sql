@@ -35,3 +35,7 @@ GO
 /*Adding columns to Tweets Table */
 ALTER TABLE Tweets ADD has_media bit
 ALTER TABLE Tweets ADD media_type tinyint
+
+
+CREATE INDEX IX_Authors on Tweets (author_id,created_at, answersTo)
+CREATE INDEX IX_Creation_date on Tweets(created_at, author_id, answersTo, referenced_tweet,reference_type)
