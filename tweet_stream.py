@@ -2,10 +2,11 @@
 Script Responsible for generating tweet stream
 """
 import tweepy
+import json
+import configparser
 from sqlhandler import sqlHandler
 from config import config
 from responseHandler import StreamReponseHandler
-import json
 
 
 class TwitterStream(tweepy.StreamingClient):
@@ -51,21 +52,8 @@ def main() -> None:
     # Intiliaze sqlHandler
     conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ATHANANTONIS;DATABASE=Tweeterdb;Trusted_connection=yes'
     sql_handler = sqlHandler(conn_string)
-    FIELD_MAPPING = {"Tweets":{"id": "id",
-                                "author_id": "author_id",
-                                "created_at": "created_at",
-                                "text": "tweet_text",
-                                "retweet_id": "referenced_tweet",
-                                "reference_type": "reference_type",
-                                "reply_to": "AnswersTo",
-                                "source": "source",
-                                "has_media": "has_media",
-                                "media_type": "media_type"},
-                     "Authors":{"id": "id",
-                                "name": "name",
-                                "username": "username",
-                                "creation_date": "creation_date"}}
-
+    FIELD_MAPPING = configparser.ConfigParser()
+    FIELD_MAPPING.read('sql_config.ini')
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
     # Create streaming_client

@@ -3,7 +3,7 @@ from tweet_dataclass import Tweet,Author
 from datetime import datetime
 from dataclasses import fields
 from typing import Union
-
+import configparser
 
 class sqlHandler:
     def __init__(self, conn_string:str) -> None:
@@ -18,7 +18,7 @@ class sqlHandler:
         self.cursor.execute("INSERT INTO Authors () values (?,?...)",params)
         pass
 
-    def set_field_mapper(self,map_dict: dict) -> None:
+    def set_field_mapper(self, map_dict: configparser.ConfigParser) -> None:
         """Sets the field mapper dict into a class variable"""
         self.field_mapping = map_dict
 
@@ -63,7 +63,7 @@ class sqlHandler:
         """Gets as input the field name from the python dataclass
         and returns the field corresponding to the database table"""
 
-        return self.field_mapping.get(table_name).get(field_name)
+        return self.field_mapping[table_name][field_name]
 
     def check_row_existance(self,table_name: str, id: str) -> bool:
         """
@@ -96,6 +96,8 @@ def main():
                                 "username": "username",
                                 "creation_date": "creation_date"}}
 
+    FIELD_MAPPING = configparser.ConfigParser()
+    FIELD_MAPPING.read('sql_config.ini')
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
     test_tweet = Tweet(id = -3,
@@ -105,7 +107,8 @@ def main():
                        retweet_id = 123,
                        reference_type = 1,
                        reply_to = 232323,
-                       source = 1)
+                       source = 1,
+                       has_media = False)
     sql_handler.insert_dataclass(test_tweet, "Tweets")
 
     test_author = Author(id = -1,
