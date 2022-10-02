@@ -5,6 +5,7 @@ import tweepy
 from sqlhandler import sqlHandler
 from config import config
 from responseHandler import StreamReponseHandler
+import json
 
 
 class TwitterStream(tweepy.StreamingClient):
@@ -24,6 +25,14 @@ class TwitterStream(tweepy.StreamingClient):
         self.sql_handler.insert_dataclass(tweet, table_name = "Tweets")
         self.sql_handler.insert_dataclass(author, table_name = "Authors")
 
+    def clear_rules(self) -> None:
+        """
+        Clears all posted rules from stream
+        """
+        posted_rules = self.get_rules()
+        ids = [rule.id for rule in posted_rules.data]
+        print(ids)
+        self.delete_rules(ids)
 
 def main() -> None:
     #Define Stream Parameters
@@ -65,8 +74,9 @@ def main() -> None:
     # Add rule
     streaming_client.add_rules(tweepy.StreamRule(value = rule, tag = tag))
     print(streaming_client.get_rules())
+    streaming_client.clear_rules()
     # Run Stream
-    streaming_client.filter(expansions = expansions, tweet_fields = tweet_fields)
+    #streaming_client.filter(expansions = expansions, tweet_fields = tweet_fields)
 
 if __name__ == "__main__":
     main()

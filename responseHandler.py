@@ -48,9 +48,6 @@ class ResponseHandler:
 
         value = next((x[value] for x in response_list), None)
 
-        if value is None:
-            return None
-
         return value
 class StreamReponseHandler(ResponseHandler):
     """ Class used to handle the response from TwitterStream class"""
