@@ -105,31 +105,23 @@ class Controller:
                      'attachments.media_keys']
 
         tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
-        self.TwitterStream.filter(expansions = expansions, tweet_fields = tweet_fields)
+        self.TwitterStream.filter(expansions = expansions, tweet_fields = tweet_fields, threaded = True)
+
 
     def stop_stream(self) -> None:
-        self.TwitterStream.stop_stream()
-
+        self.TwitterStream.disconnect()
 
 def main() -> None:
+    # Set up sqlHandler
     conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=ATHANANTONIS;DATABASE=Tweeterdb;Trusted_connection=yes'
     sql_handler = sqlHandler(conn_string)
     FIELD_MAPPING = configparser.ConfigParser()
     FIELD_MAPPING.read('sql_config.ini')
     sql_handler.set_field_mapper(FIELD_MAPPING)
 
-    expansions = ['author_id',
-                 'in_reply_to_user_id',
-                 'referenced_tweets.id',
-                 'referenced_tweets.id.author_id',
-                 'attachments.media_keys']
-
-    tweet_fields = ['text', 'in_reply_to_user_id', 'created_at', 'source']
-
-
     # Create streaming_client
     streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
-                                     sql_handler = sql_handler) # Set up stream
+                                     sql_handler = sql_handler, daemon = True) # Set up stream
 
     c = Controller(streaming_client, TkView())
     c.start()
