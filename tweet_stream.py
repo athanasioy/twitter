@@ -14,6 +14,7 @@ class TwitterStream(tweepy.StreamingClient):
     def __init__(self, bearer_token: str, sql_handler: sqlHandler):
         self.sql_handler = sql_handler
         self.responseHanlder = StreamReponseHandler()
+        self.run_stream = True
         super().__init__(bearer_token)
 
 
@@ -25,6 +26,9 @@ class TwitterStream(tweepy.StreamingClient):
         print(author)
         self.sql_handler.insert_dataclass(tweet, table_name = "Tweets")
         self.sql_handler.insert_dataclass(author, table_name = "Authors")
+        if self.run_stream == False:
+            self.run_stream = True
+            return False # Stop the stream
 
     def clear_rules(self) -> None:
         """
@@ -35,6 +39,10 @@ class TwitterStream(tweepy.StreamingClient):
         print(ids)
         self.delete_rules(ids)
 
+    def stop_stream(self) -> None:
+        """Method to stop the stream
+        """
+        self.run_stream = False
 def main() -> None:
     #Define Stream Parameters
     expansions = ['author_id',
