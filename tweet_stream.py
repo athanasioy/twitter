@@ -10,8 +10,8 @@ from responseHandler import StreamReponseHandler
 
 class TwitterStream(tweepy.StreamingClient):
 
-    def __init__(self, bearer_token: str, sql_handler: sqlHandler, daemon: bool = False):
-        self.sql_handler = sql_handler
+    def __init__(self, bearer_token: str, dataclassHandler: dataclassHandler, daemon: bool = False):
+        self.dataclassHandler = sql_handler
         self.responseHanlder = StreamReponseHandler()
         super().__init__(bearer_token, daemon = daemon)
 
@@ -21,8 +21,8 @@ class TwitterStream(tweepy.StreamingClient):
         print(tweet)
         author = self.responseHanlder.extract_author_data(data)
         print(author)
-        self.sql_handler.insert_dataclass(tweet, table_name = "Tweets")
-        self.sql_handler.insert_dataclass(author, table_name = "Authors")
+        self.dataclassHandler.handle_dataclass(tweet, table_name = "Tweets")
+        self.dataclassHandler.handle_dataclass(author, table_name = "Authors")
 
     def clear_rules(self) -> None:
         """

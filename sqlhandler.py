@@ -4,8 +4,15 @@ from datetime import datetime
 from dataclasses import fields
 from typing import Union
 import configparser
+from abc import ABC, abstractmethod
 
-class sqlHandler:
+class dataclassHandler(ABC):
+
+    def handle_dataclass(self):
+        pass
+
+
+class sqlHandler(dataclassHandler):
     def __init__(self, conn_string:str) -> None:
         self.connection = pyodbc.connect(conn_string) # Creates a connection with DB server
         self.cursor = self.connection.cursor()
@@ -42,7 +49,7 @@ class sqlHandler:
         sql_statement += fields_to_insert + " VALUES" + params
         return sql_statement
 
-    def insert_dataclass(self, dataclass: Union[Tweet, Author], table_name: str) -> None:
+    def handle_dataclass(self, dataclass: Union[Tweet, Author], table_name: str) -> None:
         """
         Inserts a tweet into the Tweets Table.
         """

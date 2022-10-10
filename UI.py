@@ -31,7 +31,7 @@ class TkView:
         self.frm_console = tk.Frame(self.root)
         self.frm_console.grid(row = 0, column = 1, rowspan = 2)
 
-        self.lst_console = tk.Listbox(self.frm_console, height = 10, width = 80, selectmode = "multiple")
+        self.lst_console = tk.Listbox(self.frm_console, height = 10, width = 120 , selectmode = "multiple")
         self.lst_console.grid()
 
 
