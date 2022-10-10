@@ -7,11 +7,13 @@ import configparser
 from sqlhandler import sqlHandler
 from config import config
 from responseHandler import StreamReponseHandler
+from sqlhandler import dataclassHandler
+
 
 class TwitterStream(tweepy.StreamingClient):
 
     def __init__(self, bearer_token: str, dataclassHandler: dataclassHandler, daemon: bool = False):
-        self.dataclassHandler = sql_handler
+        self.dataclassHandler = dataclassHandler
         self.responseHanlder = StreamReponseHandler()
         super().__init__(bearer_token, daemon = daemon)
 
@@ -21,8 +23,8 @@ class TwitterStream(tweepy.StreamingClient):
         print(tweet)
         author = self.responseHanlder.extract_author_data(data)
         print(author)
-        self.dataclassHandler.handle_dataclass(tweet, table_name = "Tweets")
-        self.dataclassHandler.handle_dataclass(author, table_name = "Authors")
+        self.dataclassHandler.handle_dataclass(tweet)
+        self.dataclassHandler.handle_dataclass(author)
 
     def clear_rules(self) -> None:
         """
@@ -56,7 +58,7 @@ def main() -> None:
 
     # Create streaming_client
     streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
-                                     sql_handler = sql_handler, daemon = True) # Set up stream
+                                     dataclassHandler = sql_handler, daemon = True) # Set up stream
     # Add rule
     streaming_client.add_rules(tweepy.StreamRule(value = rule, tag = tag))
     print(streaming_client.get_rules())

@@ -17,47 +17,40 @@ class sqlHandler(dataclassHandler):
         self.connection = pyodbc.connect(conn_string) # Creates a connection with DB server
         self.cursor = self.connection.cursor()
 
-    def insert_users(self, author: Author) -> None:
-        """
-        Inserts a user into the authors table.
-        """
-        #something like ...
-        self.cursor.execute("INSERT INTO Authors () values (?,?...)",params)
-        pass
 
     def set_field_mapper(self, map_dict: configparser.ConfigParser) -> None:
         """Sets the field mapper dict into a class variable"""
         self.field_mapping = map_dict
 
-    def insert_parameter_builder(self, dataclass: Union[Tweet, Author], table_name: str) -> str:
+    def insert_parameter_builder(self, dataclass: Union[Tweet, Author]) -> str:
         fields_to_insert = '('
         params = '('
         for field in fields(dataclass):
-            fields_to_insert += self.field_mapper(table_name,field.name) + ', '
+            fields_to_insert += self.field_mapper(dataclass.table_name(),field.name) + ', '
             params += '?' + ', '
         fields_to_insert = fields_to_insert[:-2]+')' # [:-2] gets rid of the last comma
         params = params[:-2]+')' # [:-2] gets rid of the last comma
 
         return (fields_to_insert,params)
 
-    def sql_statement_builder(self, dataclass: Union[Tweet, Author], table_name: str) -> str:
+    def sql_statement_builder(self, dataclass: Union[Tweet, Author]) -> str:
         """
         Dynamically create the SQL insert statement.
         """
-        sql_statement = f"INSERT INTO {table_name} "
-        fields_to_insert, params = self.insert_parameter_builder(dataclass, table_name = table_name)
+        sql_statement = f"INSERT INTO {dataclass.table_name()} "
+        fields_to_insert, params = self.insert_parameter_builder(dataclass)
         sql_statement += fields_to_insert + " VALUES" + params
         return sql_statement
 
-    def handle_dataclass(self, dataclass: Union[Tweet, Author], table_name: str) -> None:
+    def handle_dataclass(self, dataclass: Union[Tweet, Author]) -> None:
         """
         Inserts a tweet into the Tweets Table.
         """
-        if self.check_row_existance(table_name=table_name, id=dataclass.id):
-            print(f"Row with id {dataclass.id} on table {table_name} already exists!")
+        if self.check_row_existance(dataclass):
+            print(f"Row with id {dataclass.id} on table {dataclass.table_name()} already exists!")
             return
 
-        sql_statement = self.sql_statement_builder(dataclass,table_name)
+        sql_statement = self.sql_statement_builder(dataclass)
 
 
         # Create the tuple that will be passed into cursor.execute method
@@ -72,13 +65,13 @@ class sqlHandler(dataclassHandler):
 
         return self.field_mapping[table_name][field_name]
 
-    def check_row_existance(self,table_name: str, id: str) -> bool:
+    def check_row_existance(self, dataclass: Union[Tweet, Author]) -> bool:
         """
         Returns true if row exists
         """
         sql_statement = "SELECT count(*) FROM "
-        sql_statement += table_name +" WHERE id = ?"
-        self.cursor.execute(sql_statement,str(id))
+        sql_statement += dataclass.table_name() +" WHERE id = ?"
+        self.cursor.execute(sql_statement,dataclass.id)
         result = self.cursor.fetchone()
         return result[0] > 0
 

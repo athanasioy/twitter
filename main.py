@@ -18,7 +18,7 @@ def main() -> None:
 
     streaming_client = TwitterStream(
                                      bearer_token = config.get("bearer_token"),
-                                     sql_handler = sql_handler,
+                                     dataclassHandler = sql_handler,
                                      daemon = True
                         ) # Set up stream
 

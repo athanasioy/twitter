@@ -121,7 +121,7 @@ def main() -> None:
 
     # Create streaming_client
     streaming_client = TwitterStream(bearer_token = config.get("bearer_token"),
-                                     sql_handler = sql_handler, daemon = True) # Set up stream
+                                     dataclassHandler = sql_handler, daemon = True) # Set up stream
 
     c = Controller(streaming_client, TkView())
     c.start()

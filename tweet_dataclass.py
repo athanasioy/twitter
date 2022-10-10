@@ -38,9 +38,15 @@ class Tweet:
     source: tweet_source = None
     media_type: int = None #  None for now
 
+    def table_name(self):
+        return "Tweets"
+
 @dataclass
 class Author:
     id: int
     name: str
     username: str
     creation_date: datetime = None # If not avaialbe
+
+    def table_name(self):
+        return "Authors"
