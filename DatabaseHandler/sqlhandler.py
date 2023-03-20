@@ -1,10 +1,11 @@
 import pyodbc
-from tweet_dataclass import Tweet,Author
+from TwitterScrapper.tweet_dataclass import Tweet,Author
 from datetime import datetime
 from dataclasses import fields
 from typing import Union
 import configparser
-from abc import ABC, abstractmethod
+from abc import ABC
+
 
 class dataclassHandler(ABC):
 
@@ -22,7 +23,7 @@ class sqlHandler(dataclassHandler):
         """Sets the field mapper dict into a class variable"""
         self.field_mapping = map_dict
 
-    def insert_parameter_builder(self, dataclass: Union[Tweet, Author]) -> str:
+    def insert_parameter_builder(self, dataclass: Union[Tweet, Author]) -> tuple:
         fields_to_insert = '('
         params = '('
         for field in fields(dataclass):
@@ -31,7 +32,7 @@ class sqlHandler(dataclassHandler):
         fields_to_insert = fields_to_insert[:-2]+')' # [:-2] gets rid of the last comma
         params = params[:-2]+')' # [:-2] gets rid of the last comma
 
-        return (fields_to_insert,params)
+        return fields_to_insert, params
 
     def sql_statement_builder(self, dataclass: Union[Tweet, Author]) -> str:
         """

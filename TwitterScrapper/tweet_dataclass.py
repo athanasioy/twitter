@@ -1,6 +1,6 @@
-'''
-script contating the main dataclasses that will be passed into sqlHandler
-'''
+"""
+script contating the main dataclasses that will be passed into dataclassHandler
+"""
 
 
 from dataclasses import dataclass
@@ -32,11 +32,11 @@ class Tweet:
     created_at: datetime
     author_id: int
     has_media: bool
-    retweet_id: int = None # None if not a retweet
+    retweet_id: int = None  # None if not a retweet
     reference_type: reference_type = None
-    reply_to: int = None # None if doesn't reply
+    reply_to: int = None  # None if doesn't reply
     source: tweet_source = None
-    media_type: int = None #  None for now
+    media_type: int = None  # None for now
 
     def table_name(self):
         return "Tweets"

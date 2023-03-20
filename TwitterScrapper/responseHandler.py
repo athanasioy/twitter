@@ -1,6 +1,6 @@
 import json
 import requests
-from tweet_dataclass import Tweet, Author, tweet_source, reference_type, media_type
+from TwitterScrapper.tweet_dataclass import Tweet, Author, tweet_source, reference_type, media_type
 from typing import List
 
 class ResponseHandler:

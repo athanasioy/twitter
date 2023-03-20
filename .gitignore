@@ -3,6 +3,6 @@
 # Ignore ipynb
 *.ipynb
 # Ignore config file
-config.py
+TwitterScrapper/config.py
 # ignore my testing
 test_response.py
